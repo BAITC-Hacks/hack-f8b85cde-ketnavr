@@ -4,6 +4,7 @@ import logging
 import os
 from pathlib import Path
 import urllib.request
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, Query, Request
 from fastapi.staticfiles import StaticFiles
@@ -15,8 +16,11 @@ logger = logging.getLogger(__name__)
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 
-def _fetch_snapshot(backend_url: str, *, ai: bool, limit: int) -> RecommendationsResponse:
-    url = f"{backend_url.rstrip('/')}/recommendations?ai={str(ai).lower()}&limit={limit}"
+def _fetch_snapshot(
+    backend_url: str, *, ai: bool, limit: int, include_no_order: bool = False,
+) -> RecommendationsResponse:
+    query = urlencode({"ai": str(ai).lower(), "limit": limit, "include_no_order": str(include_no_order).lower()})
+    url = f"{backend_url.rstrip('/')}/recommendations?{query}"
     with urllib.request.urlopen(url, timeout=45) as response:
         return RecommendationsResponse.model_validate_json(response.read())
 
@@ -28,7 +32,7 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
     async def lifespan(application: FastAPI):
         if not (static_dir / "index.html").is_file():
             raise RuntimeError("Build the frontend with npm run build before starting the shared site.")
-        baseline = _fetch_snapshot(origin, ai=False, limit=0)
+        baseline = _fetch_snapshot(origin, ai=False, limit=0, include_no_order=True)
         reasons = {}
         # Public requests only read these snapshots; they cannot trigger paid API calls.
         try:
@@ -63,11 +67,13 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
         request: Request,
         ai: bool = True,
         limit: int = Query(default=0, ge=0, le=500),
+        include_no_order: bool = False,
     ) -> RecommendationsResponse:
         snapshot = request.app.state.enriched if ai else request.app.state.baseline
+        rows = [row for row in snapshot.recommendations if include_no_order or row.recommended_order_qty > 0]
         if limit:
-            return snapshot.model_copy(update={"recommendations": snapshot.recommendations[:limit]})
-        return snapshot
+            rows = rows[:limit]
+        return snapshot.model_copy(update={"recommendations": rows})
 
     @application.get("/api/health")
     @application.get("/health")
@@ -78,7 +84,8 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
             "mode": "shared_snapshot",
             "as_of": state.baseline.as_of,
             "snapshot_created_at": state.created_at,
-            "recommendations": len(state.baseline.recommendations),
+            "recommendations": sum(row.recommended_order_qty > 0 for row in state.baseline.recommendations),
+            "calculated_products": len(state.baseline.recommendations),
             "ai_enriched_rows": state.ai_enriched_rows,
         }
 

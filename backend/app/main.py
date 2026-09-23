@@ -45,6 +45,7 @@ def health() -> HealthResponse:
 def recommendations(
     limit: int | None = Query(default=None, ge=0, le=500),
     ai: bool = Query(default=True),
+    include_no_order: bool = Query(default=False),
 ) -> RecommendationsResponse:
     settings = get_settings()
     if not settings.data_zip_path.exists():
@@ -63,6 +64,7 @@ def recommendations(
             as_of=settings.as_of_date,
             safety_stock_days=settings.safety_stock_days,
             limit=settings.max_recommendations if limit is None else limit,
+            include_no_order=include_no_order,
         )
         if ai:
             rows = enrich_reasons(rows, settings)

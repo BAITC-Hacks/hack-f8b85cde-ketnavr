@@ -13,12 +13,13 @@ def build_recommendations(
     as_of: str,
     safety_stock_days: int,
     limit: int,
+    include_no_order: bool = False,
 ) -> list[Recommendation]:
     as_of_date = date.fromisoformat(as_of)
     rows = []
     for product in products:
         row = _recommend_product(product, as_of_date, safety_stock_days)
-        if row and row.recommended_order_qty > 0:
+        if row and (include_no_order or row.recommended_order_qty > 0):
             rows.append(row)
 
     priority = {"critical": 0, "soon": 1, "normal": 2}
@@ -164,6 +165,12 @@ def _template_reason(
         if product.in_transit_qty > 0
         else ", товара в пути нет"
     )
+    if order_qty <= 0:
+        return (
+            f"Средний прогнозный спрос {avg_daily:.2f} {unit}/день, {coverage_text} "
+            f"с учётом товара в пути. Запас покрывает горизонт {target_days} дн. "
+            "Дополнительный заказ сейчас не требуется."
+        )
     return (
         f"Средний прогнозный спрос {avg_daily:.2f} {unit}/день, {coverage_text} при сроке поставки "
         f"{product.lead_time_days} дн.{transit_text}. Рекомендуем {order_qty:.0f} {product.unit}: расчёт "

@@ -72,3 +72,19 @@ class RecommendationsTest(unittest.TestCase):
             self.assertEqual(result["products_total"], 123)
             self.assertEqual(result["recommendations_total"], 122)
             self.assertEqual(sum(row["recommendations"] for row in result["suppliers"]), 122)
+
+    def test_full_calculation_includes_normal_rows_without_inventing_an_order(self):
+        self.products.append(replace(self.products[0], code="no-history", sales_by_month={}))
+        with TestClient(app) as client:
+            response = client.get("/recommendations?ai=false&limit=0&include_no_order=true")
+            self.assertEqual(response.status_code, 200)
+            rows = response.json()["recommendations"]
+            self.assertEqual(len(rows), 123)
+            normal = [row for row in rows if row["urgency"] == "normal"]
+            self.assertEqual(len(normal), 1)
+            self.assertEqual(normal[0]["recommended_order_qty"], 0)
+            self.assertEqual(normal[0]["stock_qty"], 1000)
+            self.assertFalse(normal[0]["synthetic"])
+            self.assertNotEqual(normal[0]["reason"], rows[0]["reason"])
+            orders = client.get("/recommendations?ai=false").json()["recommendations"]
+            self.assertEqual([row for row in rows if row["recommended_order_qty"] > 0], orders)

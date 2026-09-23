@@ -77,4 +77,23 @@ class SharedPreviewTest(unittest.TestCase):
                 self.assertEqual(result[-1]["supplier"], "SystemElectric")
                 self.assertEqual(result[-1]["urgency"], "soon")
                 self.assertEqual(client.get("/api/health").json()["recommendations"], 122)
-                self.assertEqual(fetch.call_args_list[0].kwargs, {"ai": False, "limit": 0})
+                self.assertEqual(fetch.call_args_list[0].kwargs, {"ai": False, "limit": 0, "include_no_order": True})
+
+    def test_full_snapshot_and_order_only_view_share_the_same_cached_facts(self):
+        baseline = snapshot()
+        baseline.recommendations.insert(0, baseline.recommendations[0].model_copy(update={
+            "id": "normal-1", "recommended_order_qty": 0, "urgency": "normal",
+            "reason": "Stock is sufficient; no additional order is needed.",
+        }))
+        with patch("app.share._fetch_snapshot", side_effect=[baseline, snapshot()]) as fetch:
+            with TestClient(create_app(self.dist)) as client:
+                for ai in ("true", "false"):
+                    full = client.get(f"/api/recommendations?include_no_order=true&ai={ai}").json()["recommendations"]
+                    self.assertEqual(len(full), 2)
+                    self.assertEqual(full[0]["recommended_order_qty"], 0)
+                    orders = client.get(f"/api/recommendations?ai={ai}&limit=1").json()["recommendations"]
+                    self.assertEqual([row["id"] for row in orders], ["real-1"])
+                health = client.get("/api/health").json()
+                self.assertEqual(health["recommendations"], 1)
+                self.assertEqual(health["calculated_products"], 2)
+                self.assertEqual(fetch.call_count, 2)
