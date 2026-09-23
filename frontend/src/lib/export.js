@@ -4,7 +4,7 @@ export const exportColumns = [
   ['sku', 'Артикул'], ['product_name', 'Наименование'], ['supplier', 'Поставщик'],
   ['category', 'Категория'], ['unit', 'Ед. изм.'], ['stock_qty', 'Остаток'],
   ['in_transit_qty', 'В пути'], ['recommended_order_qty', 'К заказу'],
-  ['coverage_days', 'Запас, дней'], ['avg_daily_demand', 'Средний спрос в день'],
+  ['coverage_days', 'Покрытие с учётом пути, дней'], ['avg_daily_demand', 'Средний спрос в день'],
   ['lead_time_days', 'Срок поставки, дней'], ['moq', 'MOQ'],
   ['unit_price_kzt', 'Цена за единицу, ₸'], ['urgency', 'Срочность'], ['reason', 'Обоснование'],
 ];
@@ -82,4 +82,3 @@ export async function downloadRows(rows, format, context) {
     saveBlob(new Blob([await workbook.xlsx.writeBuffer()], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${basename}.xlsx`);
   }
 }
-
