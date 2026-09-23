@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 150" role="img" aria-labelledby="title desc">
+  <title id="title">Ketnavr</title>
+  <desc id="desc">Sharp italic Ketnavr wordmark with an orange star above N and A.</desc>
+  <g transform="skewX(-8)">
+    <text x="22" y="112" fill="#fffaf3" font-family="Arial Black, Arial, sans-serif" font-size="91" font-weight="900" letter-spacing="-5" textLength="590" lengthAdjust="spacingAndGlyphs">KETNAVR</text>
+    <path d="M24 117 L82 103 L68 137 Z M506 107 L588 117 L540 137 Z" fill="#ed6d35"/>
+    <path d="M300 25 L306 42 L324 42 L310 53 L315 71 L300 60 L285 71 L290 53 L276 42 L294 42 Z" fill="#ed6d35"/>
+  </g>
+</svg>
+
