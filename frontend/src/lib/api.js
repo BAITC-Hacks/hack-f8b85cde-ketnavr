@@ -40,3 +40,36 @@ export async function getRecommendations({ mode = 'api', signal, includeNoOrder 
   }
 }
 
+export async function askAssistant({ question, history = [], signal, fetchImpl = globalThis.fetch }) {
+  const combinedSignal = signal
+    ? AbortSignal.any([signal, AbortSignal.timeout(30000)])
+    : AbortSignal.timeout(30000);
+  try {
+    const response = await fetchImpl(`${API_BASE_URL}/assistant/chat`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, history }),
+      signal: combinedSignal,
+      cache: 'no-store',
+    });
+    const data = (response.headers.get('content-type') || '').includes('application/json')
+      ? await response.json() : null;
+    if (!response.ok) {
+      if (response.status === 404 || response.status === 405) {
+        throw new Error('Помощник ещё не подключён на сервере.');
+      }
+      throw new Error(typeof data?.detail === 'string' ? data.detail : `Ошибка сервера: HTTP ${response.status}`);
+    }
+    if (typeof data?.answer !== 'string' || !data.answer.trim()) {
+      throw new Error('Помощник вернул пустой ответ. Попробуйте ещё раз.');
+    }
+    return data.answer.trim();
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    if (combinedSignal.aborted) throw new Error('Помощник не ответил за 30 секунд. Повторите запрос.');
+    if (error instanceof TypeError) throw new Error('Нет соединения с backend. Проверьте запуск сервера.');
+    throw error;
+  }
+}
+
+

@@ -4,11 +4,14 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai_client import enrich_reasons
+from app.assistant import ChatLimiter, answer_chat
 from app.calculator import build_recommendations
 from app.config import get_settings
 from app.data_loader import ProductData, load_products
 from app.models import (
     AiStatusResponse,
+    AssistantChatRequest,
+    AssistantChatResponse,
     DataSummaryResponse,
     HealthResponse,
     RecommendationsResponse,
@@ -24,9 +27,40 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://localhost:5173",
     ],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+
+chat_limiter = ChatLimiter()
+
+
+@app.post("/assistant/chat", response_model=AssistantChatResponse)
+def assistant_chat(payload: AssistantChatRequest) -> AssistantChatResponse:
+    settings = get_settings()
+    if not payload.question.strip():
+        raise HTTPException(422, "Введите вопрос помощнику.")
+    if not _ai_configured(settings):
+        raise HTTPException(503, "ИИ-помощник пока не настроен на сервере.")
+    if not settings.data_zip_path.exists():
+        raise HTTPException(503, "Данные для помощника недоступны.")
+    with chat_limiter.slot():
+        try:
+            products = _load_products_cached(
+                str(settings.data_zip_path), settings.iek_lead_time_days,
+                settings.systeme_lead_time_days,
+            )
+            rows = build_recommendations(
+                products=products, as_of=settings.as_of_date,
+                safety_stock_days=settings.safety_stock_days, limit=0, include_no_order=True,
+            )
+            return answer_chat(payload, RecommendationsResponse(
+                as_of=settings.as_of_date, recommendations=rows,
+            ), settings)
+        except HTTPException:
+            raise
+        except Exception as error:
+            raise HTTPException(502, "Данные для помощника временно недоступны.") from error
 
 
 @app.get("/health", response_model=HealthResponse)
