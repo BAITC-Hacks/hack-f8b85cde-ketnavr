@@ -30,7 +30,7 @@ def build_recommendations(
             row.sku,
         )
     )
-    return rows[: max(limit, 1)]
+    return rows[:limit] if limit > 0 else rows
 
 
 def _recommend_product(product: ProductData, as_of_date: date, safety_stock_days: int) -> Recommendation | None:

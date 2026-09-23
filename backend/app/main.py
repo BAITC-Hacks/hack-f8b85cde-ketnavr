@@ -43,7 +43,7 @@ def health() -> HealthResponse:
 
 @app.get("/recommendations", response_model=RecommendationsResponse)
 def recommendations(
-    limit: int = Query(default=0, ge=0, le=500),
+    limit: int | None = Query(default=None, ge=0, le=500),
     ai: bool = Query(default=True),
 ) -> RecommendationsResponse:
     settings = get_settings()
@@ -62,7 +62,7 @@ def recommendations(
             products=products,
             as_of=settings.as_of_date,
             safety_stock_days=settings.safety_stock_days,
-            limit=limit or settings.max_recommendations,
+            limit=settings.max_recommendations if limit is None else limit,
         )
         if ai:
             rows = enrich_reasons(rows, settings)
@@ -96,7 +96,7 @@ def data_summary() -> DataSummaryResponse:
         products=list(products),
         as_of=settings.as_of_date,
         safety_stock_days=settings.safety_stock_days,
-        limit=settings.max_recommendations,
+        limit=0,
     )
     suppliers = sorted({product.supplier for product in products})
     return DataSummaryResponse(

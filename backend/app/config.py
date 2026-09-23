@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -36,7 +36,7 @@ def _int(name: str, default: int) -> int:
 class Settings(BaseModel):
     data_zip_path: Path
     as_of_date: str
-    max_recommendations: int
+    max_recommendations: int = Field(ge=0)
     safety_stock_days: int
     iek_lead_time_days: int
     systeme_lead_time_days: int
@@ -62,7 +62,7 @@ def get_settings() -> Settings:
             )
         ),
         as_of_date=os.getenv("AS_OF_DATE", "2026-09-22"),
-        max_recommendations=_int("MAX_RECOMMENDATIONS", 120),
+        max_recommendations=_int("MAX_RECOMMENDATIONS", 0),
         safety_stock_days=_int("SAFETY_STOCK_DAYS", 14),
         iek_lead_time_days=_int("IEK_LEAD_TIME_DAYS", 18),
         systeme_lead_time_days=_int("SYSTEME_LEAD_TIME_DAYS", 14),

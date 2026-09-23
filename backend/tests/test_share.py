@@ -62,3 +62,19 @@ class SharedPreviewTest(unittest.TestCase):
             with self.assertRaises(ConnectionError):
                 with TestClient(create_app(self.dist)):
                     pass
+
+    def test_shared_snapshot_keeps_rows_beyond_the_old_120_limit(self):
+        baseline = snapshot()
+        row = baseline.recommendations[0]
+        baseline.recommendations = [row.model_copy(update={"id": f"IEK-{i}"}) for i in range(121)]
+        baseline.recommendations.append(row.model_copy(update={
+            "id": "SE-soon", "supplier": "SystemElectric", "urgency": "soon",
+        }))
+        with patch("app.share._fetch_snapshot", side_effect=[baseline, snapshot()]) as fetch:
+            with TestClient(create_app(self.dist)) as client:
+                result = client.get("/api/recommendations").json()["recommendations"]
+                self.assertEqual(len(result), 122)
+                self.assertEqual(result[-1]["supplier"], "SystemElectric")
+                self.assertEqual(result[-1]["urgency"], "soon")
+                self.assertEqual(client.get("/api/health").json()["recommendations"], 122)
+                self.assertEqual(fetch.call_args_list[0].kwargs, {"ai": False, "limit": 0})
