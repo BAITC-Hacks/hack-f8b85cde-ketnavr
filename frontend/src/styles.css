@@ -58,4 +58,7 @@ body{background-color:#f2e9de;background-image:url('/procurement-pattern.svg'),l
 .page-button{display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--coffee)}
 .page-button:hover:not(:disabled){background:#e8f0e3;border-color:#8caa80}
 .table-footer{flex-wrap:wrap}
+.table-scroll{max-height:min(640px,65dvh);overflow-anchor:none;scroll-behavior:auto}
+.table-scroll-paged{height:min(640px,65dvh)}
+.table-scroll thead{position:sticky;top:0;z-index:1}
 @media(max-width:760px){.scope-toolbar{padding:0 15px 17px}.pagination{margin-left:auto}.table-footer .sort-control{flex-basis:100%;justify-content:flex-end}.scope-switch button{gap:5px;padding:8px}}

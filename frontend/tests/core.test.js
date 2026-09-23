@@ -108,6 +108,21 @@ test('normal stock remains in the full view but not in the order-only view', () 
   assert.equal(summarize([noOrder]).missingPrices, 0);
 });
 
+test('critical rows keep their order across four pages, including the shorter final page', () => {
+  const sample = parseRecommendationsResponse(demoResponse).recommendations[0];
+  const rows = Array.from({ length: 221 }, (_, i) => ({
+    ...sample, id: `QA-${String(i).padStart(3, '0')}`,
+    urgency: i < 177 ? 'critical' : 'soon', recommended_order_qty: 1,
+  }));
+  const selected = sortRows(filterRows(rows, { search: '', supplier: '', category: '', urgency: 'critical' }, 'orders'));
+  const pages = [1, 2, 3, 4].map(page => paginateRows(selected, page));
+  assert.deepEqual(pages.map(page => page.rows.length), [50, 50, 50, 27]);
+  assert.deepEqual(pages.map(page => [page.start, page.end]), [[1, 50], [51, 100], [101, 150], [151, 177]]);
+  assert.ok(pages.every(page => page.totalPages === 4));
+  assert.deepEqual(pages.flatMap(page => page.rows), selected);
+  assert.equal(new Set(pages.flatMap(page => page.rows.map(row => row.id))).size, 177);
+});
+
 test('pagination only slices the display and does not truncate export rows', async () => {
   const sample = parseRecommendationsResponse(demoResponse).recommendations[0];
   const rows = Array.from({ length: 123 }, (_, i) => ({ ...sample, id: `id-${i}`, sku: `SKU-${i}`, recommended_order_qty: 0, urgency: 'normal' }));

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDownToLine, ArrowUpRight, Boxes, Check, ChevronLeft, ChevronRight, CircleHelp,
   ClipboardList, FileSpreadsheet, FlaskConical, Layers3, LoaderCircle, Package,
@@ -98,6 +98,7 @@ export default function App() {
   const [selected, setSelected] = useState(null);
   const [exporting, setExporting] = useState('');
   const [notice, setNotice] = useState(null);
+  const tableRef = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,6 +124,10 @@ export default function App() {
   const hasFilters = Object.values(filters).some(Boolean);
   const available = data && !loading && !error;
   useEffect(() => { setPage(1); }, [data, filters, sort, scope]);
+  useLayoutEffect(() => {
+    // Reset only the table contents; pagination must not move the document.
+    tableRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+  }, [data, filters, sort, scope, pageData.currentPage]);
   const setFilter = (key, value) => {
     if (key === 'urgency' && value === 'normal') setScope('all');
     setFilters((previous) => ({ ...previous, [key]: value }));
@@ -210,7 +215,7 @@ export default function App() {
             : rows.length === 0 ? <div className="empty-state"><div className="state-icon"><ClipboardList size={29} /></div><h3>Расчёт пока без рекомендаций</h3><p>Сервер вернул пустой список. После подготовки данных обновите страницу.</p><button className="button button-outline" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Обновить</button></div>
             : visibleRows.length === 0 ? <div className="empty-state"><div className="state-icon"><Search size={29} /></div><h3>Нет товаров по этим фильтрам</h3><p>В расчёте {rows.length} позиций. Измените запрос или сбросьте фильтры.</p><button className="button button-outline" onClick={() => setFilters(INITIAL_FILTERS)}>Сбросить фильтры</button></div>
             : <>
-              <div className="table-scroll" tabIndex={0} role="region" aria-label="Таблица рекомендаций, можно прокручивать по горизонтали">
+              <div ref={tableRef} className={`table-scroll${pageData.totalPages > 1 ? ' table-scroll-paged' : ''}`} tabIndex={0} role="region" aria-label="Таблица рекомендаций, можно прокручивать по горизонтали и вертикали">
                 <table><caption className="sr-only">Рекомендации по закупкам. Нажмите на название товара, чтобы посмотреть обоснование.</caption><thead><tr><th scope="col" className="product-column">Товар / артикул</th><th scope="col">Поставщик</th><th scope="col" className="numeric">Остаток</th><th scope="col" className="numeric">В пути</th><th scope="col" className="numeric">Покрытие, дн.</th><th scope="col" className="numeric order-column">К заказу</th><th scope="col">Приоритет</th><th scope="col"><span className="sr-only">Подробнее</span></th></tr></thead>
                   <tbody>{pageData.rows.map((row) => <tr key={row.id} className={row.urgency === 'critical' ? 'row-critical' : ''}>
                     <td className="product-cell"><button className="product-link" onClick={() => setSelected(row)}>{row.product_name}</button><div className="product-meta"><span className="mono">{row.sku}</span><span className="meta-dot">·</span><span>{row.category}</span>{mode !== 'demo' && row.synthetic && <span className="synthetic-tag">Синтетика</span>}</div></td>
