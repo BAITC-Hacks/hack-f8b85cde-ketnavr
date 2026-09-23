@@ -14,7 +14,14 @@ main{max-width:1500px;margin:auto;padding:34px max(24px,calc((100vw - 1500px)/2)
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 
 .brand-wordmark{display:block;width:190px;height:72px;max-width:100%;object-fit:contain;image-rendering:auto}
-.sidebar{background:linear-gradient(110deg,#49372e,#624837);border-bottom:1px solid #795b46}
+.sidebar{isolation:isolate;background:#ede1d2 url('/header-contours.svg') center/cover no-repeat;border-bottom:1px solid #d8c5af;box-shadow:inset 0 1px 0 #fff9ee}
+.sidebar::before{content:"";position:absolute;inset:0 auto 0 0;width:clamp(250px,25vw,340px);background:linear-gradient(125deg,#46342b,#74523b);border-bottom-right-radius:130px 82px;z-index:-1;pointer-events:none}
+.sidebar .nav-item.active{background:#fffaf0e8;color:#604630;border:1px solid #d4bca1;box-shadow:0 3px 12px #654c3610}
+.sidebar .nav-item.active>svg:first-child{color:#b25e35}
+.sidebar .nav-item:hover{background:#fffaf3;border-color:#ae8967}
+.demo-exit{margin-left:auto;flex-shrink:0;background:#fffaf3;border-color:#c9a687;color:#754a30}
+.demo-exit:hover:not(:disabled){background:#f1d9c5}
+@media(max-width:760px){.sidebar::before{width:210px;border-bottom-right-radius:92px 68px}.demo-banner{flex-wrap:wrap}.demo-banner>div{flex:1;min-width:190px}.demo-exit{margin-left:30px}}
 .brand{margin-left:-14px}
 .breadcrumb{font-size:14px;gap:14px}
 .breadcrumb>svg{width:16px;height:16px}
@@ -27,6 +34,7 @@ main{max-width:1500px;margin:auto;padding:34px max(24px,calc((100vw - 1500px)/2)
 body{background-color:#f2e9de;background-image:url('/procurement-pattern.svg'),linear-gradient(180deg,#f4ece2 0%,#eee4d8 100%);background-size:480px 360px,100% 100%;background-repeat:repeat,no-repeat;cursor:default}
 .page-heading{background:linear-gradient(135deg,#302624 0%,#46322c 58%,#624031 100%)}
 .panel-heading{position:relative;z-index:2}
+.table-scroll{position:relative}
 .panel-title{min-width:0}
 .panel-title h2{line-height:1.3}
 .count-badge{flex-shrink:0}

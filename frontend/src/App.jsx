@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ArrowDownToLine, ArrowRight, ArrowUpRight, Boxes, Check, ChevronRight, CircleHelp,
+  ArrowDownToLine, ArrowUpRight, Boxes, Check, ChevronRight, CircleHelp,
   ClipboardList, FileSpreadsheet, FlaskConical, Layers3, LoaderCircle, Package,
   RefreshCw, Search, SlidersHorizontal, TriangleAlert, Truck, Wallet, X,
 } from 'lucide-react';
@@ -120,10 +120,10 @@ export default function App() {
   const available = data && !loading && !error;
   const setFilter = (key, value) => setFilters((previous) => ({ ...previous, [key]: value }));
 
-  function switchMode() {
+  function leaveDemo() {
     setFilters(INITIAL_FILTERS);
     setSelected(null);
-    setMode((previous) => previous === 'demo' ? 'api' : 'demo');
+    setMode('api');
   }
 
   async function exportData(format) {
@@ -152,9 +152,9 @@ export default function App() {
     <div className="main-shell">
       <header className="topbar"><div className="breadcrumb">Закупки <ChevronRight size={14} /><span>Рекомендации</span></div><div className="topbar-right"><span className="profile-avatar" aria-label="Dias Serikov">DS</span></div></header>
       <main id="recommendations">
-            <div className="page-heading"><div><div className="eyebrow heading-eyebrow">ПЛАНИРОВАНИЕ И РЕКОМЕНДАЦИИ</div><h1>Заказ с ясным основанием</h1><p>Потребность в закупке с учётом остатков, поставок в пути и срочности.</p></div><div className="heading-actions"><button className={`button ${mode === 'demo' ? 'button-demo' : 'button-quiet'}`} onClick={switchMode} disabled={Boolean(exporting)}><FlaskConical size={17} />{mode === 'demo' ? 'Перейти к API' : 'Открыть демо'}</button><button className="button button-outline" onClick={() => setReload((count) => count + 1)} disabled={loading || Boolean(exporting)}><RefreshCw size={17} className={loading ? 'spin' : ''} />Обновить</button></div><div className="hero-orbit hero-orbit-one" aria-hidden="true" /><div className="hero-orbit hero-orbit-two" aria-hidden="true" /><div className="hero-spark hero-spark-one" aria-hidden="true" /><div className="hero-spark hero-spark-two" aria-hidden="true" /></div>
+            <div className="page-heading"><div><div className="eyebrow heading-eyebrow">ПЛАНИРОВАНИЕ И РЕКОМЕНДАЦИИ</div><h1>Заказ с ясным основанием</h1><p>Потребность в закупке с учётом остатков, поставок в пути и срочности.</p></div><div className="heading-actions"><button className="button button-outline" onClick={() => setReload((count) => count + 1)} disabled={loading || Boolean(exporting)}><RefreshCw size={17} className={loading ? 'spin' : ''} />Обновить</button></div><div className="hero-orbit hero-orbit-one" aria-hidden="true" /><div className="hero-orbit hero-orbit-two" aria-hidden="true" /><div className="hero-spark hero-spark-one" aria-hidden="true" /><div className="hero-spark hero-spark-two" aria-hidden="true" /></div>
 
-        {mode === 'demo' && <div className="demo-banner" role="status"><FlaskConical size={18} /><div><strong>Демонстрационные данные</strong><span>Все товары и расчёты ниже синтетические. Выгрузка тоже будет помечена «ДЕМО».</span></div><span className="demo-tag">ДЕМО</span></div>}
+        {mode === 'demo' && <div className="demo-banner" role="status"><FlaskConical size={18} /><div><strong>Демонстрационные данные</strong><span>Все товары и расчёты ниже синтетические. Выгрузка тоже будет помечена «ДЕМО».</span></div><button className="button demo-exit" onClick={leaveDemo} disabled={Boolean(exporting)}>К рабочим данным</button></div>}
         {notice && <div className={`notice notice-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.type === 'success' ? <Check size={18} /> : <TriangleAlert size={18} />}<span>{notice.text}</span><button className="icon-button" aria-label="Закрыть сообщение" onClick={() => setNotice(null)}><X size={17} /></button></div>}
 
         <div className="overview-heading"><span>Обзор {hasFilters ? 'текущей выборки' : 'рекомендаций'}</span><span>{data ? `Данные на ${dateLabel(data.as_of)}` : 'Ожидаем данные расчёта'}</span></div>
@@ -177,7 +177,7 @@ export default function App() {
           </div>
 
           {loading ? <div className="loading-state" role="status"><LoaderCircle className="spin" size={25} /><strong>Загружаем рекомендации</strong><p>Получаем результаты расчёта…</p></div>
-            : error ? <div className="empty-state error-state" role="alert"><div className="state-icon"><TriangleAlert size={29} strokeWidth={1.6} /></div><h3>Не удалось получить рекомендации</h3><p>Ошибка при загрузке данных</p><div className="empty-actions"><button className="button button-primary" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Повторить</button><button className="button button-outline" onClick={switchMode}>Посмотреть демо <ArrowRight size={16} /></button></div></div>
+            : error ? <div className="empty-state error-state" role="alert"><div className="state-icon"><TriangleAlert size={29} strokeWidth={1.6} /></div><h3>Не удалось получить рекомендации</h3><p>Ошибка при загрузке данных</p><div className="empty-actions"><button className="button button-primary" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Повторить</button></div></div>
             : rows.length === 0 ? <div className="empty-state"><div className="state-icon"><ClipboardList size={29} /></div><h3>Расчёт пока без рекомендаций</h3><p>Сервер вернул пустой список. После подготовки данных обновите страницу.</p><button className="button button-outline" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Обновить</button></div>
             : visibleRows.length === 0 ? <div className="empty-state"><div className="state-icon"><Search size={29} /></div><h3>Нет товаров по этим фильтрам</h3><p>В расчёте {rows.length} позиций. Измените запрос или сбросьте фильтры.</p><button className="button button-outline" onClick={() => setFilters(INITIAL_FILTERS)}>Сбросить фильтры</button></div>
             : <>
