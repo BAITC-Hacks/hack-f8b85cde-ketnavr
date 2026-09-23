@@ -1,2 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#172c31"/><path d="M8 10h16v4H8zm0 8h7v4H8zm11 0h5v4h-5z" fill="#c4ef7d"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ketnavr star">
+  <rect width="32" height="32" rx="8" fill="#2b201c"/>
+  <path d="M16 5 L18.5 12.5 L26 12.5 L20 17 L22.5 24.5 L16 20 L9.5 24.5 L12 17 L6 12.5 L13.5 12.5 Z" fill="#ed6d35"/>
+</svg>
 
