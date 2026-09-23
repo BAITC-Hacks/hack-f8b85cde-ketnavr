@@ -8,6 +8,65 @@ import { buildCsv, buildWorkbook } from '../src/lib/export.js';
 
 const payload = () => structuredClone(demoResponse);
 
+test('the full 221-row response is preserved without frontend limits', () => {
+  const data = payload();
+  data.recommendations = Array.from({ length: 221 }, (_, index) => ({
+    ...data.recommendations[index % data.recommendations.length], id: `QA-${index}`,
+  }));
+  assert.equal(parseRecommendationsResponse(data).recommendations.length, 221);
+});
+
+test('recommended order preserves API order; quantity order is descending and does not mutate input', () => {
+  const rows = parseRecommendationsResponse(demoResponse).recommendations.reverse();
+  const before = structuredClone(rows);
+  assert.deepEqual(sortRows(rows, 'original'), before);
+  const sorted = sortRows(rows, 'quantity');
+  assert.ok(sorted.every((row, index) => index === 0 || sorted[index - 1].recommended_order_qty >= row.recommended_order_qty));
+  assert.deepEqual(rows, before);
+});
+
+test('search is case-insensitive, trims whitespace and matches SKU', () => {
+  const rows = parseRecommendationsResponse(demoResponse).recommendations;
+  const filters = { supplier: '', category: '', urgency: '', search: `  ${rows[0].sku.toLowerCase()}  ` };
+  assert.deepEqual(filterRows(rows, filters).map(row => row.id), [rows[0].id]);
+  assert.equal(filterRows(rows, { ...filters, search: 'NOT-A-REAL-SKU' }).length, 0);
+});
+
+test('unknown versions, NaN, infinity, negative optional fields and blank reasons are rejected', () => {
+  const mutations = [
+    data => { data.schema_version = '2.0'; },
+    data => { data.recommendations[0].stock_qty = NaN; },
+    data => { data.recommendations[0].in_transit_qty = Infinity; },
+    data => { data.recommendations[0].moq = -1; },
+    data => { data.recommendations[0].reason = ' '; },
+  ];
+  for (const mutate of mutations) {
+    const data = payload();
+    mutate(data);
+    assert.throws(() => parseRecommendationsResponse(data), ContractError);
+  }
+});
+
+test('request timeout is 45 seconds and reports a timeout without falling back to demo', async t => {
+  let requestedTimeout;
+  t.mock.method(AbortSignal, 'timeout', milliseconds => {
+    requestedTimeout = milliseconds;
+    return AbortSignal.abort(new DOMException('Timed out', 'TimeoutError'));
+  });
+  await assert.rejects(getRecommendations({ fetchImpl: async (_url, options) => {
+    throw options.signal.reason;
+  } }), /45 секунд/);
+  assert.equal(requestedTimeout, 45000);
+});
+
+test('caller cancellation is preserved instead of becoming a network error', async () => {
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(getRecommendations({ signal: controller.signal, fetchImpl: async (_url, options) => {
+    throw options.signal.reason;
+  } }), { name: 'AbortError' });
+});
+
 test('both demo and API return the same validated schema', async () => {
   const demo = await getRecommendations({ mode: 'demo' });
   let requestUrl;
@@ -98,4 +157,3 @@ test('XLSX round-trip retains numbers, explanation and demo provenance', async (
   assert.equal(sheet.getCell('P2').value, '2026-09-22');
   assert.equal(sheet.getCell('Q2').value, 'ДЕМО / синтетические данные');
 });
-
