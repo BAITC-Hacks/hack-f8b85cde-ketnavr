@@ -110,7 +110,7 @@ export default function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#recommendations">Перейти к рекомендациям</a>
     <aside className="sidebar" aria-label="Навигация">
-      <a className="brand" href="#recommendations" aria-label="Ketnavr, рекомендации"><img className="brand-wordmark" src="/ketnavr-wordmark.png" alt="Ketnavr" /></a>
+      <a className="brand" href="#recommendations" aria-label="Ketnavr, рекомендации"><img className="brand-wordmark" src="/ketnavr-wordmark-transparent.png" alt="Ketnavr" /></a>
       <div className="sidebar-caption">УПРАВЛЕНИЕ ЗАКУПКАМИ</div>
       <a className="nav-item active" href="#recommendations" aria-current="page"><ClipboardList size={20} /><span>Рекомендации</span><ChevronRight size={16} /></a>
       <div className="sidebar-context"><span className="sidebar-section-label">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="workspace-icon"><Layers3 size={20} /></div><strong>Планирование поставок</strong><p>Остатки, потребность<br />и обоснованный заказ.</p></div>
