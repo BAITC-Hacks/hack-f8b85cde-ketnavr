@@ -109,7 +109,7 @@ export default function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#recommendations">Перейти к рекомендациям</a>
     <aside className="sidebar" aria-label="Навигация">
-      <a className="brand" href="#recommendations" aria-label="Запас, рекомендации"><span className="brand-symbol"><Boxes size={25} strokeWidth={1.6} /></span><span>запас<span className="brand-dot">.</span></span></a>
+      <a className="brand" href="#recommendations" aria-label="Ketnavr, рекомендации"><img className="brand-wordmark" src="/ketnavr-wordmark.svg" alt="Ketnavr" /></a>
       <div className="sidebar-caption">УПРАВЛЕНИЕ ЗАКУПКАМИ</div>
       <a className="nav-item active" href="#recommendations" aria-current="page"><ClipboardList size={20} /><span>Рекомендации</span><ChevronRight size={16} /></a>
       <div className="sidebar-context"><span className="sidebar-section-label">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="workspace-icon"><Layers3 size={20} /></div><strong>Планирование поставок</strong><p>Остатки, потребность<br />и обоснованный заказ.</p></div>
@@ -161,7 +161,7 @@ export default function App() {
             </>}
         </section>
         <div className="bottom-notes"><p><CircleHelp size={16} />Нажмите на товар, чтобы увидеть обоснование и исходные показатели.</p><span>Выгрузка учитывает фильтры</span></div>
-        <footer className="page-footer"><span>ЗАПАС <span className="footer-dot">/</span> ПЛАНИРОВАНИЕ ПОСТАВОК</span><span>{mode === 'demo' ? 'Демонстрация интерфейса' : 'Данные и расчёты — из backend'}</span></footer>
+        <footer className="page-footer"><span>KETNAVR <span className="footer-dot">/</span> ПЛАНИРОВАНИЕ ПОСТАВОК</span><span>{mode === 'demo' ? 'Демонстрация интерфейса' : 'Данные и расчёты — из backend'}</span></footer>
       </main>
     </div>
     <DetailDialog row={selected} onClose={() => setSelected(null)} mode={mode} />
