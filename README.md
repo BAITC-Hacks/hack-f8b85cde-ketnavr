@@ -8,7 +8,7 @@ React + Vite. Роль участника 3: показать результат
 
 ```powershell
 cd frontend
-npm ci
+npm install
 npm run dev
 ```
 
