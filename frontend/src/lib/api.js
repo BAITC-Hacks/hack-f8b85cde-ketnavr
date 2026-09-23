@@ -5,17 +5,24 @@ export const API_BASE_URL = (config.VITE_API_BASE_URL || '/api').replace(/\/$/, 
 export const API_PATH = config.VITE_RECOMMENDATIONS_PATH || '/recommendations';
 export const DEFAULT_MODE = config.VITE_DATA_MODE === 'demo' ? 'demo' : 'api';
 
-export async function getRecommendations({ mode = 'api', signal, fetchImpl = globalThis.fetch } = {}) {
+export async function getRecommendations({ mode = 'api', signal, includeNoOrder = false, fetchImpl = globalThis.fetch } = {}) {
   if (mode === 'demo') {
     const { demoResponse } = await import('../data/demo.js');
     return parseRecommendationsResponse(demoResponse);
   }
   if (mode !== 'api') throw new Error('Неизвестный источник данных.');
+  let requestUrl = `${API_BASE_URL}${API_PATH}`;
+  if (includeNoOrder) {
+    const url = new URL(requestUrl, 'http://localhost');
+    url.searchParams.set('include_no_order', 'true');
+    url.searchParams.set('limit', '0');
+    requestUrl = /^https?:\/\//.test(requestUrl) ? url.href : `${url.pathname}${url.search}`;
+  }
   const combinedSignal = signal
     ? AbortSignal.any([signal, AbortSignal.timeout(45000)])
     : AbortSignal.timeout(45000);
   try {
-    const response = await fetchImpl(`${API_BASE_URL}${API_PATH}`, {
+    const response = await fetchImpl(requestUrl, {
       headers: { Accept: 'application/json' },
       signal: combinedSignal,
       cache: 'no-store',

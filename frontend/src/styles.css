@@ -44,3 +44,16 @@ body{background-color:#f2e9de;background-image:url('/procurement-pattern.svg'),l
 .table-help-popover{position:absolute;top:100%;left:0;width:min(290px,calc(100vw - 74px));padding-top:9px;z-index:5}
 .table-help-text{display:block;background:#493127;color:#fff4e9;border:1px solid #694938;border-radius:10px;padding:13px 15px;font-size:13px;font-weight:400;line-height:1.65;box-shadow:0 8px 22px #30251f26}
 @media(max-width:760px){.brand{width:145px;margin-left:-8px}.brand-wordmark{width:145px;height:55px}.error-state .empty-actions{flex-direction:column}.breadcrumb{font-size:13px}.panel-title{gap:8px}.panel-title h2{font-size:21px}}
+
+.scope-toolbar{padding:0 28px 18px}
+.scope-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(100%,440px);padding:3px;border:1px solid var(--line);border-radius:7px;background:#fff;gap:3px}
+.scope-switch button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:40px;padding:8px 10px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--coffee);font-size:12px;letter-spacing:0;text-align:left}
+.scope-switch button span{min-width:4ch;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scope-switch button[aria-pressed="true"]{background:#e8f0e3;border-color:#b5c8ad;color:#345237;font-weight:600}
+.scope-switch button:hover:not(:disabled){border-color:#8caa80}
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.pagination>span{min-width:64px;text-align:center;font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--coffee)}
+.page-button{display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--coffee)}
+.page-button:hover:not(:disabled){background:#e8f0e3;border-color:#8caa80}
+.table-footer{flex-wrap:wrap}
+@media(max-width:760px){.scope-toolbar{padding:0 15px 17px}.pagination{margin-left:auto}.table-footer .sort-control{flex-basis:100%;justify-content:flex-end}.scope-switch button{gap:5px;padding:8px}}

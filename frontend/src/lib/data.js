@@ -4,14 +4,28 @@ export const number = (value) => value === null || value === undefined ? '—' :
 export const money = (value) => value === null || value === undefined ? '—' : `${number(value)} ₸`;
 export const dateLabel = (value) => new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
 
-export function filterRows(rows, filters) {
+export function filterRows(rows, filters, scope = 'all') {
   const search = filters.search.trim().toLocaleLowerCase('ru-RU');
   return rows.filter((row) => (
-    (!filters.supplier || row.supplier === filters.supplier)
+    (scope !== 'orders' || row.recommended_order_qty > 0)
+    && (!filters.supplier || row.supplier === filters.supplier)
     && (!filters.category || row.category === filters.category)
     && (!filters.urgency || row.urgency === filters.urgency)
     && (!search || `${row.sku} ${row.product_name}`.toLocaleLowerCase('ru-RU').includes(search))
   ));
+}
+
+export function paginateRows(rows, page, pageSize = 50) {
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.max(1, Math.min(page, totalPages));
+  const offset = (currentPage - 1) * pageSize;
+  return {
+    rows: rows.slice(offset, offset + pageSize),
+    currentPage,
+    totalPages,
+    start: rows.length ? offset + 1 : 0,
+    end: Math.min(offset + pageSize, rows.length),
+  };
 }
 
 export function sortRows(rows, sort = 'priority') {
