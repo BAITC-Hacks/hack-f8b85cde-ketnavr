@@ -10,3 +10,6 @@ frontend/dist/
 frontend/.env
 
 backend/.env
+
+.tools/
+.share/

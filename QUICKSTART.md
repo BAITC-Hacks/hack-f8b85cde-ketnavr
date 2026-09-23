@@ -93,9 +93,15 @@ Frontend не должен видеть эти ключи.
 
 ```powershell
 cd backend
+.\.venv\Scripts\pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 
 cd ..\frontend
 npm test
 npm run build
 ```
+
+## 5. Временная общая ссылка
+
+Порядок запуска отдельной версии для показа команде: [SHARING.md](SHARING.md).
+Она отдаёт сохранённый результат расчёта; обновления страницы не вызывают платные API.
