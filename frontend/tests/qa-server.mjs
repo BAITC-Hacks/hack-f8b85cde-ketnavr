@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react';
 import { demoResponse } from '../src/data/demo.js';
 
 let scenario = 'error';
+let chatScenario = 'ready';
+const chatRequests = [];
 const scenarios = new Set(['ready', 'empty', 'error', 'invalid', 'slow']);
 const server = await createServer({
   configFile: false,
@@ -19,6 +21,37 @@ const server = await createServer({
   plugins: [react(), {
     name: 'isolated-qa-fixtures',
     configureServer(vite) {
+      vite.middlewares.use('/__qa/chat-scenario', (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405).end(); return; }
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          if (!['ready', 'error', 'long', 'slow'].includes(body)) { res.writeHead(400).end(); return; }
+          chatScenario = body;
+          res.end(body);
+        });
+      });
+      vite.middlewares.use('/__qa/chat-stats', (_req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(chatRequests));
+      });
+      vite.middlewares.use('/__qa/assistant/chat', (req, res) => {
+        if (req.method !== 'POST') { res.writeHead(405).end(); return; }
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          const request = JSON.parse(body);
+          chatRequests.push({ question: request.question, historyLengths: request.history.map(turn => turn.content.length) });
+          res.setHeader('Content-Type', 'application/json');
+          if (chatScenario === 'slow') {
+            const timer = setTimeout(() => res.end(JSON.stringify({ answer: 'Тестовый ответ с задержкой.' })), 1500);
+            res.on('close', () => clearTimeout(timer));
+            return;
+          }
+          if (chatScenario === 'error') { res.writeHead(503).end(JSON.stringify({ detail: 'ИИ-помощник пока не настроен на сервере.' })); return; }
+          res.end(JSON.stringify({ answer: chatScenario === 'long' ? 'Тестовый длинный ответ. '.repeat(160) : 'Тестовый ответ: расчёт не изменён, сумма неполная.' }));
+        });
+      });
       vite.middlewares.use('/__qa/scenario', (req, res) => {
         if (req.method !== 'POST') { res.writeHead(405).end(); return; }
         let body = '';
@@ -40,7 +73,9 @@ const server = await createServer({
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(current === 'invalid' ? { unexpected: true }
           : current === 'empty' ? { schema_version: '1.0', as_of: demoResponse.as_of, recommendations: [] }
-          : demoResponse));
+          : { ...demoResponse, recommendations: Array.from({ length: 61 }, (_, i) => ({
+              ...demoResponse.recommendations[i % demoResponse.recommendations.length], id: 'QA-' + i,
+            })) }));
       });
     },
   }],

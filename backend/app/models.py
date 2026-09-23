@@ -61,3 +61,18 @@ class AiStatusResponse(BaseModel):
     model: str | None
     max_rows: int
     key_present: bool
+
+
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=1500)
+
+
+class AssistantChatRequest(BaseModel):
+    question: str = Field(min_length=1, max_length=1000)
+    history: list[ChatTurn] = Field(default_factory=list, max_length=10)
+
+
+class AssistantChatResponse(BaseModel):
+    answer: str
+

@@ -6,10 +6,12 @@ from pathlib import Path
 import urllib.request
 from urllib.parse import urlencode
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
 
-from app.models import RecommendationsResponse
+from app.models import AssistantChatRequest, AssistantChatResponse, RecommendationsResponse
+from app.assistant import ChatLimiter, answer_chat
+from app.config import get_settings
 
 
 logger = logging.getLogger(__name__)
@@ -25,8 +27,11 @@ def _fetch_snapshot(
         return RecommendationsResponse.model_validate_json(response.read())
 
 
-def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None) -> FastAPI:
+def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None, *,
+               chat_enabled: bool | None = None) -> FastAPI:
     origin = backend_url or os.getenv("SHARE_BACKEND_URL", "http://127.0.0.1:8000")
+    allow_chat = chat_enabled if chat_enabled is not None else os.getenv("SHARE_CHAT_ENABLED", "false").lower() == "true"
+    chat_limiter = ChatLimiter()
 
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -34,7 +39,7 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
             raise RuntimeError("Build the frontend with npm run build before starting the shared site.")
         baseline = _fetch_snapshot(origin, ai=False, limit=0, include_no_order=True)
         reasons = {}
-        # Public requests only read these snapshots; they cannot trigger paid API calls.
+        # Recommendation GETs only read snapshots. Optional chat POSTs can call AI.
         try:
             enhanced = _fetch_snapshot(origin, ai=True, limit=3)
             if enhanced.as_of == baseline.as_of:
@@ -75,6 +80,15 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
             rows = rows[:limit]
         return snapshot.model_copy(update={"recommendations": rows})
 
+    @application.post("/api/assistant/chat", response_model=AssistantChatResponse)
+    @application.post("/assistant/chat", response_model=AssistantChatResponse)
+    def assistant_chat(payload: AssistantChatRequest, request: Request) -> AssistantChatResponse:
+        if not allow_chat:
+            raise HTTPException(503, "ИИ-помощник отключён на общей ссылке.")
+        with chat_limiter.slot():
+            # Chat uses the same server-owned snapshot displayed on the shared site.
+            return answer_chat(payload, request.app.state.baseline, get_settings())
+
     @application.get("/api/health")
     @application.get("/health")
     def health(request: Request) -> dict:
@@ -87,6 +101,7 @@ def create_app(static_dir: Path = FRONTEND_DIST, backend_url: str | None = None)
             "recommendations": sum(row.recommended_order_qty > 0 for row in state.baseline.recommendations),
             "calculated_products": len(state.baseline.recommendations),
             "ai_enriched_rows": state.ai_enriched_rows,
+            "chat_enabled": allow_chat,
         }
 
     application.mount("/", StaticFiles(directory=static_dir, html=True, check_dir=False), name="frontend")

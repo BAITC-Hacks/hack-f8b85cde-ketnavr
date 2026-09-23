@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, SlidersHorizontal, TriangleAlert, Truck, Wallet, X,
 } from 'lucide-react';
 import { DEFAULT_MODE, getRecommendations } from './lib/api.js';
+import AssistantChat from './AssistantChat.jsx';
 import { downloadBackFrontErrors, saveBackFrontError } from './lib/back-front-errors.js';
 import { URGENCY } from './lib/contract.js';
 import { dateLabel, filterRows, money, number, paginateRows, sortRows, summarize } from './lib/data.js';
@@ -231,6 +232,7 @@ export default function App() {
         <footer className="page-footer"><span>KETNAVR TEAM</span></footer>
       </main>
     </div>
+    <AssistantChat key={mode} mode={mode} available={available} />
     <DetailDialog row={selected} onClose={() => setSelected(null)} mode={mode} />
   </div>;
 }
