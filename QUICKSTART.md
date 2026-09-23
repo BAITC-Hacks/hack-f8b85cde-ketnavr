@@ -26,7 +26,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/data/summary
 Invoke-RestMethod http://127.0.0.1:8000/ai/status
-Invoke-RestMethod "http://127.0.0.1:8000/recommendations?limit=5"
+Invoke-RestMethod "http://127.0.0.1:8000/recommendations?limit=5&ai=false"
 ```
 
 ## 2. Frontend
@@ -36,10 +36,29 @@ Invoke-RestMethod "http://127.0.0.1:8000/recommendations?limit=5"
 ```powershell
 cd frontend
 npm install
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 npm run dev
 ```
 
 Открыть: `http://127.0.0.1:5173/`
+
+В `frontend/.env.local` для запуска на одном компьютере:
+
+```env
+BACKEND_URL=http://127.0.0.1:8000
+VITE_API_BASE_URL=/api
+VITE_RECOMMENDATIONS_PATH=/recommendations?ai=false
+VITE_DATA_MODE=api
+```
+
+Для двух ноутбуков в одной локальной сети backend запускается с
+`--host 0.0.0.0 --port 8000`, а в `BACKEND_URL` указывается локальный IPv4-адрес
+ноутбука с backend вместо `127.0.0.1`. Vite продолжает проксировать `/api`.
+После изменения `.env.local` перезапустите frontend. Эта схема не даёт доступ через интернет.
+
+Первую проверку проведите с `ai=false`: таблица, фильтры, карточка товара и выгрузка
+CSV/Excel. Затем для проверки ИИ замените параметр на `ai=true` и перезапустите
+frontend. Время ожидания ответа API составляет 45 секунд. Демо включается отдельно.
 
 ## 3. API keys
 

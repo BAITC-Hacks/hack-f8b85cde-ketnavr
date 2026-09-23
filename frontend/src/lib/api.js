@@ -12,8 +12,8 @@ export async function getRecommendations({ mode = 'api', signal, fetchImpl = glo
   }
   if (mode !== 'api') throw new Error('Неизвестный источник данных.');
   const combinedSignal = signal
-    ? AbortSignal.any([signal, AbortSignal.timeout(10000)])
-    : AbortSignal.timeout(10000);
+    ? AbortSignal.any([signal, AbortSignal.timeout(45000)])
+    : AbortSignal.timeout(45000);
   try {
     const response = await fetchImpl(`${API_BASE_URL}${API_PATH}`, {
       headers: { Accept: 'application/json' },
@@ -27,7 +27,7 @@ export async function getRecommendations({ mode = 'api', signal, fetchImpl = glo
     return parseRecommendationsResponse(await response.json());
   } catch (error) {
     if (signal?.aborted) throw error;
-    if (combinedSignal.aborted) throw new Error('Backend не ответил за 10 секунд. Повторите запрос.');
+    if (combinedSignal.aborted) throw new Error('Backend не ответил за 45 секунд. Повторите запрос.');
     if (error instanceof TypeError) throw new Error('Нет соединения с backend. Проверьте адрес API и доступность сервера.');
     throw error;
   }
