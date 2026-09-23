@@ -12,6 +12,38 @@ import { downloadRows } from './lib/export.js';
 
 const INITIAL_FILTERS = { search: '', supplier: '', category: '', urgency: '' };
 
+function TableHelp() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const dismissOutside = (event) => { if (!ref.current?.contains(event.target)) setOpen(false); };
+    const dismissEscape = (event) => { if (event.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', dismissOutside);
+    document.addEventListener('keydown', dismissEscape);
+    return () => {
+      document.removeEventListener('pointerdown', dismissOutside);
+      document.removeEventListener('keydown', dismissEscape);
+    };
+  }, [open]);
+
+  return <span className="table-help" ref={ref}
+    onPointerEnter={(event) => { if (event.pointerType === 'mouse') setOpen(true); }}
+    onPointerLeave={() => { if (!ref.current?.querySelector(':focus-visible')) setOpen(false); }}
+    onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false); }}>
+    <button type="button" className="table-help-button" aria-label="Как посмотреть обоснование заказа"
+      aria-expanded={open} aria-controls="table-help-content" aria-describedby={open ? 'table-help-content' : undefined}
+      onFocus={(event) => { if (event.currentTarget.matches(':focus-visible')) setOpen(true); }}
+      onClick={() => setOpen((previous) => !previous)}>
+      <CircleHelp size={19} strokeWidth={1.6} aria-hidden="true" />
+    </button>
+    <span id="table-help-content" className="table-help-popover" role="tooltip" hidden={!open}>
+      <span className="table-help-text">Нажмите на товар, чтобы увидеть обоснование и исходные показатели.</span>
+    </span>
+  </span>;
+}
+
 function UrgencyBadge({ value }) {
   return <span className={`urgency urgency-${value}`}><span aria-hidden="true" />{URGENCY[value].label}</span>;
 }
@@ -134,7 +166,7 @@ export default function App() {
         </section>
 
         <section className="recommendation-panel" aria-labelledby="table-title">
-          <div className="panel-heading"><div className="panel-title"><h2 id="table-title">Рекомендации к закупке</h2><span className="count-badge">{available ? visibleRows.length : '—'}</span></div><div className="export-actions"><button className="button button-quiet export-csv" onClick={() => exportData('csv')} disabled={!available || !visibleRows.length || Boolean(exporting)}>{exporting === 'csv' ? <LoaderCircle size={17} className="spin" /> : <ArrowDownToLine size={17} />}CSV</button><button className="button button-primary" onClick={() => exportData('xlsx')} disabled={!available || !visibleRows.length || Boolean(exporting)}>{exporting === 'xlsx' ? <LoaderCircle size={17} className="spin" /> : <FileSpreadsheet size={17} />}Скачать Excel</button></div></div>
+          <div className="panel-heading"><div className="panel-title"><TableHelp /><h2 id="table-title">Рекомендации к закупке</h2><span className="count-badge">{available ? visibleRows.length : '—'}</span></div><div className="export-actions"><button className="button button-quiet export-csv" onClick={() => exportData('csv')} disabled={!available || !visibleRows.length || Boolean(exporting)}>{exporting === 'csv' ? <LoaderCircle size={17} className="spin" /> : <ArrowDownToLine size={17} />}CSV</button><button className="button button-primary" onClick={() => exportData('xlsx')} disabled={!available || !visibleRows.length || Boolean(exporting)}>{exporting === 'xlsx' ? <LoaderCircle size={17} className="spin" /> : <FileSpreadsheet size={17} />}Скачать Excel</button></div></div>
 
           <div className="filters">
             <label className="search-field"><Search size={18} aria-hidden="true" /><span className="sr-only">Поиск по товару или артикулу</span><input type="search" placeholder="Товар или артикул…" value={filters.search} onChange={(event) => setFilter('search', event.target.value)} disabled={!available} /></label>
@@ -161,11 +193,10 @@ export default function App() {
               <div className="table-footer"><span>Показано <strong>{visibleRows.length}</strong> из {rows.length} позиций</span><label className="sort-control"><SlidersHorizontal size={15} /><span className="sr-only">Сортировка</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="priority">По приоритету</option><option value="quantity">По количеству к заказу</option><option value="original">Порядок backend</option></select></label></div>
             </>}
         </section>
-        <div className="bottom-notes"><p><CircleHelp size={16} />Нажмите на товар, чтобы увидеть обоснование и исходные показатели.</p><span>Выгрузка учитывает фильтры</span></div>
+        {available && <div className="bottom-notes"><span>Выгрузка учитывает фильтры</span></div>}
         <footer className="page-footer"><span>KETNAVR TEAM</span></footer>
       </main>
     </div>
     <DetailDialog row={selected} onClose={() => setSelected(null)} mode={mode} />
   </div>;
 }
-

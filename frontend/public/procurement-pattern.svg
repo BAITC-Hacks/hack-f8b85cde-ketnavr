@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360" fill="none">
+  <defs>
+    <!-- Simple outline motifs, matching the interface's icon language. -->
+    <g id="box"><path d="m3 7 9-5 9 5v10l-9 5-9-5V7Z M3 7l9 5 9-5 M12 12v10 M7.5 4.5l9 5v5"/></g>
+    <g id="bolt"><path d="m13 2-9 12h7l-1 8 10-12h-7l1-8Z"/></g>
+    <g id="chart"><path d="M3 3v18h18 M7 15l5-5 4 3 5-7 M17 6h4v4"/></g>
+    <g id="truck"><path d="M1 4h13v13H1V4Z M14 9h4l4 4v4h-8 M18 9v4h4"/><circle cx="5" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/></g>
+    <g id="checklist"><rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="m8 12 2 2 3-4 M8 18h7"/></g>
+    <g id="spark"><path d="M12 1c0 7-4 11-11 11 7 0 11 4 11 11 0-7 4-11 11-11C16 12 12 8 12 1Z"/></g>
+  </defs>
+  <g stroke="#9b7351" stroke-opacity=".15" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#box" transform="translate(25 22) rotate(-15 12 12) scale(1.65)"/>
+    <use href="#spark" transform="translate(167 25) rotate(12 12 12) scale(1.1)"/>
+    <use href="#chart" transform="translate(287 17) rotate(10 12 12) scale(1.65)"/>
+    <use href="#bolt" transform="translate(423 72) rotate(16 12 12) scale(1.35)"/>
+    <use href="#truck" transform="translate(87 128) rotate(12 12 12) scale(1.7)"/>
+    <use href="#checklist" transform="translate(236 129) rotate(-12 12 12) scale(1.6)"/>
+    <use href="#box" transform="translate(368 189) rotate(16 12 12) scale(1.45)"/>
+    <use href="#bolt" transform="translate(20 260) rotate(-18 12 12) scale(1.45)"/>
+    <use href="#spark" transform="translate(145 285) scale(1.2)"/>
+    <use href="#chart" transform="translate(264 280) rotate(-12 12 12) scale(1.55)"/>
+    <use href="#checklist" transform="translate(428 294) rotate(17 12 12) scale(1.3)"/>
+    <path d="M82 78c11-15 29 13 42-1 M217 70c13 1 17 11 13 20 M315 214c12-13 24 13 35 0 M71 326c9-6 18-5 24 2 M432 143c-10 3-13 12-9 21"/>
+    <path d="m196 204 5-8 5 8-5 8-5-8Z M343 103h9 M347.5 98.5v9 M72 214h8 M76 210v8 M374 324h8 M378 320v8"/>
+    <circle cx="189" cy="123" r="3"/><circle cx="328" cy="151" r="3"/><circle cx="206" cy="264" r="3"/><circle cx="122" cy="239" r="2"/><circle cx="386" cy="39" r="2"/>
+  </g>
+</svg>
