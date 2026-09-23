@@ -8,7 +8,9 @@ FastAPI-сервис читает Excel-архив поставщиков, сч�
 cd backend
 python -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+New-Item -ItemType Directory -Path data -Force
+Copy-Item -LiteralPath "$env:USERPROFILE\Downloads\Excel_IEK_Systeme_Electric_оформленные.zip" -Destination data/source.zip
 .\.venv\Scripts\uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -18,8 +20,13 @@ Copy-Item .env.example .env
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/data/summary
 Invoke-RestMethod http://127.0.0.1:8000/ai/status
-Invoke-RestMethod http://127.0.0.1:8000/recommendations?limit=5
+Invoke-RestMethod 'http://127.0.0.1:8000/recommendations?limit=5&ai=false'
 ```
+
+`DATA_ZIP_PATH=data/source.zip` в `.env` считается от папки `backend`.
+Можно указать свой абсолютный путь. Исходный архив не входит в Git.
+Полный расчёт: `/recommendations?ai=false&limit=0&include_no_order=true`.
+Пошаговый запуск всего приложения и чата: [README.md](../README.md).
 
 ## API-ключи
 

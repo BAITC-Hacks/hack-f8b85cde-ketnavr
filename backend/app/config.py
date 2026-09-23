@@ -54,13 +54,11 @@ def get_settings() -> Settings:
     provider = os.getenv("AI_PROVIDER", "template").strip().lower()
     if provider not in {"template", "openai", "nvidia", "auto"}:
         provider = "template"
+    data_path = Path(os.getenv("DATA_ZIP_PATH", "data/source.zip")).expanduser()
+    if not data_path.is_absolute():
+        data_path = ROOT_DIR / data_path
     return Settings(
-        data_zip_path=Path(
-            os.getenv(
-                "DATA_ZIP_PATH",
-                r"C:\Users\ulana\Downloads\Excel_IEK_Systeme_Electric_оформленные.zip",
-            )
-        ),
+        data_zip_path=data_path,
         as_of_date=os.getenv("AS_OF_DATE", "2026-09-22"),
         max_recommendations=_int("MAX_RECOMMENDATIONS", 0),
         safety_stock_days=_int("SAFETY_STOCK_DAYS", 14),
