@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "public": false,
+  "installCommand": "npm --prefix frontend install --no-package-lock",
+  "buildCommand": "npm --prefix frontend run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "includeFiles": "backend/{app/**,data/source.zip}",
+      "excludeFiles": "{frontend/**,backend/tests/**,**/.env,**/.env.*,**/__pycache__/**,.share/**,.tools/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" }
+  ]
+}

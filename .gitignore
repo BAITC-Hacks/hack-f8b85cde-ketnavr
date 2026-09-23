@@ -13,3 +13,8 @@ backend/.env
 
 .tools/
 .share/
+.vercel/
+backend/data/
+
+.env*
+!.env.example
