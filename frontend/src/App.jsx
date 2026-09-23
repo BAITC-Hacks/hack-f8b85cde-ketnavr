@@ -5,6 +5,7 @@ import {
   RefreshCw, Search, SlidersHorizontal, TriangleAlert, Truck, Wallet, X,
 } from 'lucide-react';
 import { DEFAULT_MODE, getRecommendations } from './lib/api.js';
+import { saveBackFrontError } from './lib/back-front-errors.js';
 import { URGENCY } from './lib/contract.js';
 import { dateLabel, filterRows, money, number, sortRows, summarize } from './lib/data.js';
 import { downloadRows } from './lib/export.js';
@@ -73,7 +74,7 @@ export default function App() {
     setNotice(null);
     getRecommendations({ mode, signal: controller.signal })
       .then((response) => { if (!controller.signal.aborted) setData(response); })
-      .catch((failure) => { if (!controller.signal.aborted) setError(failure.message); })
+      .catch((failure) => { if (!controller.signal.aborted) { saveBackFrontError(failure, { mode, endpoint: '/recommendations' }); setError('Ошибка при загрузке данных'); } })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [mode, reload]);
@@ -109,7 +110,7 @@ export default function App() {
   return <div className="app-shell">
     <a className="skip-link" href="#recommendations">Перейти к рекомендациям</a>
     <aside className="sidebar" aria-label="Навигация">
-      <a className="brand" href="#recommendations" aria-label="Ketnavr, рекомендации"><img className="brand-wordmark" src="/ketnavr-wordmark.svg" alt="Ketnavr" /></a>
+      <a className="brand" href="#recommendations" aria-label="Ketnavr, рекомендации"><img className="brand-wordmark" src="/ketnavr-wordmark.png" alt="Ketnavr" /></a>
       <div className="sidebar-caption">УПРАВЛЕНИЕ ЗАКУПКАМИ</div>
       <a className="nav-item active" href="#recommendations" aria-current="page"><ClipboardList size={20} /><span>Рекомендации</span><ChevronRight size={16} /></a>
       <div className="sidebar-context"><span className="sidebar-section-label">РАБОЧЕЕ ПРОСТРАНСТВО</span><div className="workspace-icon"><Layers3 size={20} /></div><strong>Планирование поставок</strong><p>Остатки, потребность<br />и обоснованный заказ.</p></div>
@@ -117,9 +118,9 @@ export default function App() {
     </aside>
 
     <div className="main-shell">
-      <header className="topbar"><div className="breadcrumb">Закупки <ChevronRight size={14} /><span>Рекомендации</span></div><div className="topbar-right"><span className={`connection ${available && mode === 'api' ? 'connected' : ''}`}><span />{mode === 'demo' ? 'Демо-режим' : loading ? 'Подключение…' : error ? 'Backend не подключён' : 'Backend подключён'}</span><span className="topbar-divider" /><span className="profile-avatar" aria-label="Команда закупок">ЗК</span></div></header>
+      <header className="topbar"><div className="breadcrumb">Закупки <ChevronRight size={14} /><span>Рекомендации</span></div><div className="topbar-right"><span className="profile-avatar" aria-label="Dias Serikov">DS</span></div></header>
       <main id="recommendations">
-            <div className="page-heading"><div><div className="eyebrow heading-eyebrow">ПЛАНИРОВАНИЕ / РЕКОМЕНДАЦИИ</div><h1>Заказ с ясным основанием</h1><p>Потребность в закупке с учётом остатков, поставок в пути и срочности.</p></div><div className="heading-actions"><button className={`button ${mode === 'demo' ? 'button-demo' : 'button-quiet'}`} onClick={switchMode} disabled={Boolean(exporting)}><FlaskConical size={17} />{mode === 'demo' ? 'Перейти к API' : 'Открыть демо'}</button><button className="button button-outline" onClick={() => setReload((count) => count + 1)} disabled={loading || Boolean(exporting)}><RefreshCw size={17} className={loading ? 'spin' : ''} />Обновить</button></div><div className="hero-orbit hero-orbit-one" aria-hidden="true" /><div className="hero-orbit hero-orbit-two" aria-hidden="true" /><div className="hero-spark hero-spark-one" aria-hidden="true" /><div className="hero-spark hero-spark-two" aria-hidden="true" /></div>
+            <div className="page-heading"><div><div className="eyebrow heading-eyebrow">ПЛАНИРОВАНИЕ И РЕКОМЕНДАЦИИ</div><h1>Заказ с ясным основанием</h1><p>Потребность в закупке с учётом остатков, поставок в пути и срочности.</p></div><div className="heading-actions"><button className={`button ${mode === 'demo' ? 'button-demo' : 'button-quiet'}`} onClick={switchMode} disabled={Boolean(exporting)}><FlaskConical size={17} />{mode === 'demo' ? 'Перейти к API' : 'Открыть демо'}</button><button className="button button-outline" onClick={() => setReload((count) => count + 1)} disabled={loading || Boolean(exporting)}><RefreshCw size={17} className={loading ? 'spin' : ''} />Обновить</button></div><div className="hero-orbit hero-orbit-one" aria-hidden="true" /><div className="hero-orbit hero-orbit-two" aria-hidden="true" /><div className="hero-spark hero-spark-one" aria-hidden="true" /><div className="hero-spark hero-spark-two" aria-hidden="true" /></div>
 
         {mode === 'demo' && <div className="demo-banner" role="status"><FlaskConical size={18} /><div><strong>Демонстрационные данные</strong><span>Все товары и расчёты ниже синтетические. Выгрузка тоже будет помечена «ДЕМО».</span></div><span className="demo-tag">ДЕМО</span></div>}
         {notice && <div className={`notice notice-${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}>{notice.type === 'success' ? <Check size={18} /> : <TriangleAlert size={18} />}<span>{notice.text}</span><button className="icon-button" aria-label="Закрыть сообщение" onClick={() => setNotice(null)}><X size={17} /></button></div>}
@@ -144,7 +145,7 @@ export default function App() {
           </div>
 
           {loading ? <div className="loading-state" role="status"><LoaderCircle className="spin" size={25} /><strong>Загружаем рекомендации</strong><p>Получаем результаты расчёта…</p></div>
-            : error ? <div className="empty-state error-state" role="alert"><div className="state-icon"><TriangleAlert size={29} strokeWidth={1.6} /></div><h3>Не удалось получить рекомендации</h3><p>{error}</p><div className="empty-actions"><button className="button button-primary" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Повторить</button><button className="button button-outline" onClick={switchMode}>Посмотреть демо <ArrowRight size={16} /></button></div><span className="state-footnote">Демо открывается отдельно и не заменяет ответ сервера.</span></div>
+            : error ? <div className="empty-state error-state" role="alert"><div className="state-icon"><TriangleAlert size={29} strokeWidth={1.6} /></div><h3>Не удалось получить рекомендации</h3><p>Ошибка при загрузке данных</p><div className="empty-actions"><button className="button button-primary" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Повторить</button><button className="button button-outline" onClick={switchMode}>Посмотреть демо <ArrowRight size={16} /></button></div><span className="state-footnote">Демо открывается отдельно и не заменяет ответ сервера.</span></div>
             : rows.length === 0 ? <div className="empty-state"><div className="state-icon"><ClipboardList size={29} /></div><h3>Расчёт пока без рекомендаций</h3><p>Сервер вернул пустой список. После подготовки данных обновите страницу.</p><button className="button button-outline" onClick={() => setReload((count) => count + 1)}><RefreshCw size={16} />Обновить</button></div>
             : visibleRows.length === 0 ? <div className="empty-state"><div className="state-icon"><Search size={29} /></div><h3>Нет товаров по этим фильтрам</h3><p>В расчёте {rows.length} позиций. Измените запрос или сбросьте фильтры.</p><button className="button button-outline" onClick={() => setFilters(INITIAL_FILTERS)}>Сбросить фильтры</button></div>
             : <>
@@ -161,7 +162,7 @@ export default function App() {
             </>}
         </section>
         <div className="bottom-notes"><p><CircleHelp size={16} />Нажмите на товар, чтобы увидеть обоснование и исходные показатели.</p><span>Выгрузка учитывает фильтры</span></div>
-        <footer className="page-footer"><span>KETNAVR <span className="footer-dot">/</span> ПЛАНИРОВАНИЕ ПОСТАВОК</span><span>{mode === 'demo' ? 'Демонстрация интерфейса' : 'Данные и расчёты — из backend'}</span></footer>
+        <footer className="page-footer"><span>KETNAVR TEAM</span></footer>
       </main>
     </div>
     <DetailDialog row={selected} onClose={() => setSelected(null)} mode={mode} />
